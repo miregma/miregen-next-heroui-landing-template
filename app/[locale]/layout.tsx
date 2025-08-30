@@ -8,6 +8,9 @@ import { Providers } from "./providers";
 import { siteConfig } from "@/config/site";
 import { fontSans } from "@/config/fonts";
 import { Navbar } from "@/components/navbar";
+import {hasLocale, NextIntlClientProvider } from "next-intl";
+import {routing} from "@/i18n/routing";
+import {notFound} from "next/navigation";
 
 export const metadata: Metadata = {
   title: {
@@ -27,13 +30,19 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({
-  children,
-}: {
+type Props = {
   children: React.ReactNode;
-}) {
+  params: Promise<{locale: string}>;
+};
+
+export default async function LocaleLayout({children, params}: Props) {
+  const {locale} = await params;
+  if (!hasLocale(routing.locales, locale)) {
+    notFound();
+  }
+
   return (
-    <html suppressHydrationWarning lang="en">
+    <html suppressHydrationWarning lang={locale}>
       <head />
       <body
         className={clsx(
@@ -41,6 +50,7 @@ export default function RootLayout({
           fontSans.variable,
         )}
       >
+      <NextIntlClientProvider>
         <Providers themeProps={{ attribute: "class", defaultTheme: "dark" }}>
           <div className="relative flex flex-col h-screen">
             <Navbar />
@@ -60,6 +70,7 @@ export default function RootLayout({
             </footer>
           </div>
         </Providers>
+      </NextIntlClientProvider>
       </body>
     </html>
   );
